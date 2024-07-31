@@ -9,13 +9,10 @@ import yaml
 from pathlib import Path
 from transformers.file_utils import CONFIG_NAME, WEIGHTS_NAME
 
-
-
 app = FastAPI()
 
 # Define the path to the local models directory
 local_models_dir = os.path.expanduser('~/.cache/modelscope/hub')
-
 HUGGINGFACE_CACHE_DIR = Path(os.path.expanduser("~/.cache/huggingface/hub/"))
 
 
@@ -36,7 +33,7 @@ Example data:
   "models--Qwen--Qwen2-0.5B"
 ]
 """
-def get_model_list() -> List[str]:
+def get_huggingface_model_list() -> List[str]:
     if not HUGGINGFACE_CACHE_DIR.exists():
         raise HTTPException(status_code=404, detail="Hugging Face cache directory not found.")
     
@@ -48,10 +45,9 @@ def get_model_list() -> List[str]:
 """
 Example data:
 
-{
-  model_name: "qwen",
-  path: "/Users/tobe/.cache/modelscope/hub/qwen"
-}
+[
+  "qwen"
+]
 """
 def get_local_model_info(model_name):
     model_path = os.path.join(local_models_dir, model_name)
@@ -60,27 +56,9 @@ def get_local_model_info(model_name):
     if not os.path.isdir(model_path):
         raise HTTPException(status_code=404, detail="Model not found")
     
-    model_info = {
-        'model_name': model_name,
-        'path': model_path,
-    }
-    
-    # Example of reading a config file or metadata file if exists
-    config_path = os.path.join(model_path, 'config.json')
-    model_info_path = os.path.join(model_path, 'model_info.json')
+    model_list = os.listdir(model_path)
 
-    if os.path.exists(config_path):
-        with open(config_path, 'r') as f:
-            model_info['config'] = json.load(f)
-
-    if os.path.exists(model_info_path):
-        with open(model_info_path, 'r') as f:
-            model_info['details'] = json.load(f)
-    
-    # Add more file reads as necessary
-    # Example: Reading weights or other metadata files
-    
-    return model_info
+    return model_list
 
 # Endpoint to list all local models
 @app.get("/models/")
