@@ -137,7 +137,6 @@ if __name__ == "__main__":
     #models_helper.download_models_to_database(10)
     #models = models_helper.get_models()
     #models = models_helper.search_models("qwen")
-
     model = models_helper.get_model("Qwen/Qwen-7B")
     
     models_helper.close()

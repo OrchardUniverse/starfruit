@@ -1,39 +1,19 @@
 import os
 from pathlib import Path
+from typing import List
 
-
-
-def CacheHelper():
+class CacheHelper():
+    
     def __init__(self):
-        CACHE_DIR = os.path.expanduser("~/.cache/huggingface/hub/")
+        self.CACHE_DIR = os.path.expanduser("~/.cache/huggingface/hub/")
 
         # Ensure cache directory exists
-        os.makedirs(CACHE_DIR, exist_ok=True)
-
-
-
-    def parse_model_id(directory_name: str) -> str:
-        # Convert directory name to model ID
-        if directory_name.startswith("models--"):
-            # Split the directory name by '--' and take the organization and model name
-            parts = directory_name.split('--')
-            if len(parts) == 3:
-                organization, model_name = parts[1], parts[2]
-                # Construct the model ID as "organization/model_name"
-                model_id = f"{organization}/{model_name}"
-                return model_id
-        return None
+        os.makedirs(self.CACHE_DIR, exist_ok=True)
     
 
-    def get_local_huggingface_models(self):
-        # List all directories in the cache directory
-        model_dirs = [d.name for d in self.CACHE_DIR.iterdir() if d.is_dir()]
-        model_ids = [parse_model_id(d) for d in model_dirs if parse_model_id(d) is not None]
-        return model_ids
+    def get_models(self) -> List[str]:
 
-    def get_models(self):
-
-    # Initialize an empty list to store the formatted directory names
+        # Initialize an empty list to store the formatted directory names
         formatted_dirs = []
 
         # Iterate over the items in the cache directory
@@ -43,3 +23,10 @@ def CacheHelper():
                 # Convert the directory name format from "models--Model--Version" to "Model/Version"
                 formatted_dir = item.replace("models--", "").replace("--", "/")
                 formatted_dirs.append(formatted_dir)
+        
+        return formatted_dirs
+
+
+if __name__ == "__main__":
+    cache_helper = CacheHelper()
+    print(cache_helper.get_models())

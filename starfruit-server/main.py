@@ -1,49 +1,52 @@
-from fastapi import FastAPI, HTTPException, APIRouter
-from huggingface_hub import HfApi
-import json
-from typing import List, Optional
-import os
-from pydantic import BaseModel
-from pathlib import Path
-
+from fastapi import FastAPI, HTTPException, APIRouter, Query
+from typing import List
 from pydantic_sqlalchemy import sqlalchemy_to_pydantic
-
-
 
 from huggingface_util.models_helper import ModelsHelper
 from huggingface_util.models_helper import HuggingFaceModel
+from huggingface_util.cache_helper import CacheHelper
 
 PydanticHuggingFaceModel= sqlalchemy_to_pydantic(HuggingFaceModel)
 
-
+# Initialize the FastAPI app
 app = FastAPI()
-
 router = APIRouter(prefix="/api")
+
+# Initialize the HuggingFace helper
 models_helper = ModelsHelper()
-
-
-class UserSchema(BaseModel):
-    id: int
-    name: str
-    email: str
-
-    class Config:
-        orm_mode = True
-
-
+cache_helper = CacheHelper()
 
 @router.get("/huggingface_models/", response_model=List[PydanticHuggingFaceModel])
 async def get_huggingface_models():
-    return [PydanticHuggingFaceModel.from_orm(model) for model in models_helper.get_models(10)]
+    models = models_helper.get_models(10)
+    return [PydanticHuggingFaceModel.from_orm(model) for model in models]
+
+@router.get("/huggingface_models/model", response_model=PydanticHuggingFaceModel)
+async def get_huggingface_model(id: str = Query(..., description="The ID of the item, including slashes encoded as %2F")):
+    model = models_helper.get_model(id)
+    if model is None:
+        raise HTTPException(status_code=404, detail="Model not found")
+    return PydanticHuggingFaceModel.from_orm(model)
+
+@router.get("/huggingface_models/search", response_model=List[PydanticHuggingFaceModel])
+async def get_huggingface_model(id: str = Query(..., description="The ID of the item, including slashes encoded as %2F")):
+    models = models_helper.search_models(id)
+    return [PydanticHuggingFaceModel.from_orm(model) for model in models]
 
 
-@router.get("/models")
-async def get_cached_models():
+@router.get("/models", response_model=List[str])
+async def get_cached_models() :
     try:
-        #cached_models = os.listdir(CACHE_DIR)
-        return {"cached_models": []}
+        return cache_helper.get_models()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/models/model", response_model=PydanticHuggingFaceModel)
+async def get_huggingface_model(id: str = Query(..., description="The ID of the item, including slashes encoded as %2F")):
+    model = models_helper.get_model(id)
+    if model is None:
+        raise HTTPException(status_code=404, detail="Model not found")
+    return PydanticHuggingFaceModel.from_orm(model)
 
 
 app.include_router(router)
