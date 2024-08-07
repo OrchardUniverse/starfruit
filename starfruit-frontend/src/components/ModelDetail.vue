@@ -4,7 +4,7 @@
     <div v-if="model">
       <p><strong>ID:</strong> {{ model.id }}</p>
       <p><strong>Created At:</strong> {{ model.created_at }}</p>
-      <p><strong>Tags:</strong> {{ model.tags.join(', ') }}</p>
+      <p><strong>Tags:</strong> {{ model.tags }}</p>
       <p><strong>Pipeline Tag:</strong> {{ model.pipeline_tag }}</p>
     </div>
     <div v-else>
@@ -14,22 +14,22 @@
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
       model: null,
     };
   },
-  created() {
+  async created() {
     const modelId = this.$route.params.id;
-    // Fetch model details based on the model ID
-    // For now, we'll use sample data
-    const models = [
-      { id: 1, created_at: '2024-01-01', tags: ['tag1', 'tag2'], pipeline_tag: 'pipeline1' },
-      { id: 2, created_at: '2024-01-02', tags: ['tag3'], pipeline_tag: 'pipeline2' },
-    ];
-    this.model = models.find(model => model.id == modelId);
+    try {
+      const response = await axios.get(`http://localhost:9966/api/models/model/?id=${modelId}`);
+      this.model = response.data;
+    } catch (error) {
+      console.error('Error fetching model:', error);
+    }
   },
 };
 </script>
-

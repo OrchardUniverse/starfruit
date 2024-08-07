@@ -10,33 +10,30 @@
     <ul>
       <li
         v-for="model in filteredModels"
-        :key="model.id"
-        @click="viewModelDetail(model.id)"
+        :key="model"
+        @click="viewModelDetail(model)"
         class="p-4 mb-2 border rounded cursor-pointer hover:bg-gray-100"
       >
-        {{ model.name }}
+        {{ model }}
       </li>
     </ul>
   </div>
 </template>
 
 <script>
+import axios from 'axios';
+
 export default {
   data() {
     return {
       search: '',
-      models: [
-        // Sample data
-        { id: 1, name: 'Model 1', created_at: '2024-01-01', tags: ['tag1', 'tag2'], pipeline_tag: 'pipeline1' },
-        { id: 2, name: 'Model 2', created_at: '2024-01-02', tags: ['tag3'], pipeline_tag: 'pipeline2' },
-        // Add more models as needed
-      ],
+      models: [],
     };
   },
   computed: {
     filteredModels() {
       return this.models.filter(model =>
-        model.name.toLowerCase().includes(this.search.toLowerCase())
+        model.toLowerCase().includes(this.search.toLowerCase())
       );
     },
   },
@@ -44,7 +41,17 @@ export default {
     viewModelDetail(id) {
       this.$router.push({ name: 'ModelDetail', params: { id } });
     },
+    async fetchModels() {
+      try {
+        const response = await axios.get('http://localhost:9966/api/models');
+        this.models = response.data;
+      } catch (error) {
+        console.error('Error fetching models:', error);
+      }
+    },
+  },
+  created() {
+    this.fetchModels();
   },
 };
 </script>
-

@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, APIRouter, Query
 from typing import List
 from pydantic_sqlalchemy import sqlalchemy_to_pydantic
+from fastapi.middleware.cors import CORSMiddleware
 
 from huggingface_util.models_helper import ModelsHelper
 from huggingface_util.models_helper import HuggingFaceModel
@@ -10,6 +11,13 @@ PydanticHuggingFaceModel= sqlalchemy_to_pydantic(HuggingFaceModel)
 
 # Initialize the FastAPI app
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 router = APIRouter(prefix="/api")
 
 # Initialize the HuggingFace helper
