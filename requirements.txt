@@ -1,8 +1,9 @@
 fastapi
 uvicorn
 modelscope
-datasets==2.18.0
 oss2
 addict
 huggingface_hub
 transformers
+sqlalchemy
+pydantic-sqlalchemy
