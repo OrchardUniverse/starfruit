@@ -15,10 +15,12 @@
         Search
       </button>
     </div>
+    <div v-if="hintMessage" class="text-gray-600 mb-4">{{ hintMessage }}</div>
     <ul>
       <li
         v-for="model in filteredModels"
         :key="model.id"
+        @click="viewModelDetail(model.id)"
         class="p-4 mb-2 border rounded cursor-pointer hover:bg-gray-100"
       >
         <p><strong>ID:</strong> {{ model.id }}</p>
@@ -38,6 +40,7 @@ export default {
     return {
       search: '',
       models: [],
+      hintMessage: '',
     };
   },
   computed: {
@@ -57,14 +60,20 @@ export default {
       }
     },
     async searchModels() {
+      this.hintMessage = 'Start searching, please wait for a while';
       try {
         const response = await axios.post('http://localhost:9966/api/huggingface_models/search', {
-          query: this.search
+          search: this.search
         });
         this.models = response.data;
+        this.hintMessage = '';
       } catch (error) {
         console.error('Error searching models:', error);
+        this.hintMessage = 'Error occurred during the search. Please try again.';
       }
+    },
+    viewModelDetail(id) {
+      this.$router.push({ name: 'HuggingFaceModelDetail', params: { id } });
     },
   },
   created() {

@@ -1,6 +1,6 @@
 <template>
   <div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Model List</h1>
+    <h1 class="text-2xl font-bold mb-4">Local Models</h1>
     <input
       v-model="search"
       type="text"
