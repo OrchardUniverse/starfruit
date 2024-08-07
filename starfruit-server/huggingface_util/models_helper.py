@@ -58,6 +58,8 @@ class ModelsHelper():
 
     def download_models_to_database(self, maxSize: int = 10):
         api = HfApi()
+        # TODO: Use user's token to doanload models
+
         models = api.list_models()
 
         currentSize = 0;
@@ -127,7 +129,20 @@ class ModelsHelper():
             print("More than one result found.")
             return None
 
-    
+    def download_model(self, id: str) -> HuggingFaceModel:
+
+        huggingface_model = self.get_model(id)
+        if huggingface_model is None:
+            print("Fail to get the model")
+            return None
+        
+        from transformers import AutoTokenizer, AutoModelForCausalLM
+
+        tokenizer = AutoTokenizer.from_pretrained(id)
+        model = AutoModelForCausalLM.from_pretrained(id)
+
+        return huggingface_model
+        
     def close(self):
         self.session.close()
 
@@ -137,7 +152,9 @@ if __name__ == "__main__":
     #models_helper.download_models_to_database(10)
     #models = models_helper.get_models()
     #models = models_helper.search_models("qwen")
-    model = models_helper.get_model("Qwen/Qwen-7B")
+    #model = models_helper.get_model("Qwen/Qwen-7B")
+    model = models_helper.download_model("google/gemma-2-2b-it")
+    print(model)
     
     models_helper.close()
 

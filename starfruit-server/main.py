@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException, APIRouter, Query
 from typing import List
 from pydantic_sqlalchemy import sqlalchemy_to_pydantic
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 from huggingface_util.models_helper import ModelsHelper
 from huggingface_util.models_helper import HuggingFaceModel
@@ -10,6 +12,13 @@ PydanticHuggingFaceModel= sqlalchemy_to_pydantic(HuggingFaceModel)
 
 # Initialize the FastAPI app
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 router = APIRouter(prefix="/api")
 
 # Initialize the HuggingFace helper
@@ -28,10 +37,21 @@ async def get_huggingface_model(id: str = Query(..., description="The ID of the 
         raise HTTPException(status_code=404, detail="Model not found")
     return PydanticHuggingFaceModel.from_orm(model)
 
-@router.get("/huggingface_models/search", response_model=List[PydanticHuggingFaceModel])
-async def get_huggingface_model(id: str = Query(..., description="The ID of the item, including slashes encoded as %2F")):
-    models = models_helper.search_models(id)
+class SearchData(BaseModel):
+    search: str
+
+@router.post("/huggingface_models/search", response_model=List[PydanticHuggingFaceModel])
+async def search_huggingface_models(searchData: SearchData):
+    models = models_helper.search_models(searchData.search)
     return [PydanticHuggingFaceModel.from_orm(model) for model in models]
+
+class DownloadModelData(BaseModel):
+    id: str
+
+@router.post("/huggingface_models/download", response_model=PydanticHuggingFaceModel)
+async def download_huggingface_model(downloadModelData: DownloadModelData):
+    model = models_helper.download_model(downloadModelData.id)
+    return PydanticHuggingFaceModel.from_orm(model)
 
 
 @router.get("/models", response_model=List[str])
